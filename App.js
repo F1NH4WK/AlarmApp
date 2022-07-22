@@ -1,9 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
 import React, {useState, useEffect} from 'react';
-import { StyleSheet, Text, View, Pressable} from 'react-native';
+import { Text, View, Pressable} from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Audio } from 'expo-av';
+
+// LOCAL IMPORT
+
+import styles from './styles/styles'
 
 export default function App() {
 
@@ -23,9 +27,9 @@ export default function App() {
   ]);
   const [play, setPlay] = useState(false)
 
-  // Here, useEffect is while the play button is true, otherwise it won't do anything.
+  // Here, useEffect does smth while the play button is true, otherwise it won't do anything.
   // while play is true the counting will be descending until both minutes and seconds are 0.
-  // when both get 0, the play's set to false, then the useEffect won't do anything again.
+  // when both get 0, the play's set to false, then useEffect won't do anything again.
 
   useEffect(()=> {
     if (play){
@@ -47,21 +51,6 @@ export default function App() {
   }
   })
 
-  // FUNCTION TO PLAY THE ALARM SOUND
-
-  async function playSound(){
-    const sound = new Audio.Sound();
-    let file = "";
-    try{
-      audios.map(val => val.selected? file = val.file: null)
-      await sound.loadAsync(file)
-      await sound.playAsync();
-    }
-    catch(er){
-      alert(er)
-    }
-}
-
   // TIME PICKER CONFIG
   const onChange = (event, selectedDate) => {
     setTime(selectedDate);
@@ -77,7 +66,7 @@ export default function App() {
       onChange,
     });
 
-  // CREATING A VAR TO ADD A '0' IN SOME SITUATIONS WHERE SECONDS ARE LOWER THAN 10
+  // CREATING A VAR TO ADD A '0' WHEN SECONDS ARE LOWER THAN 10
   let secondsCheck = seconds < 10? 
   '0' + seconds: seconds;
 
@@ -88,15 +77,32 @@ export default function App() {
     return(
     <Pressable onPress={() => changeAudio(props.index)}>
       <Ionicons name={props.nome} size={40} 
-      style = {[styles.teste, props.select? styles.testeOn: null]} />
+      style = {[props.select? styles.select: styles.noSelect]}
+      />
     </Pressable>
     )
   }
 
-  // Set all audios to false and then set true the selected one.
+  // FUNCTION TO PLAY THE ALARM SOUND
+
+  async function playSound(){
+    const sound = new Audio.Sound();
+    let file = "";
+    try{
+      audios.map(val => val.selected? file = val.file: null)
+      await sound.loadAsync(file)
+      await sound.playAsync()
+    }
+    catch(er){
+      alert(er)
+    }
+}
+
+  // Set all audios to false and then set true to the selected one.
   const changeAudio = (i) => {
     audios.map((val) => val.selected = false)
-    audios[i].selected = true;
+    audios[i].selected = true
+    playSound()
     setAudio(audios)
   }
 
@@ -105,8 +111,8 @@ export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar hidden/>
-      
       <Text style = {styles.textHeader}>TIMER</Text>
+
       <View style = {styles.compoGroup}>
 
       <Text style = {{color: 'white', fontWeight: 'bold', fontSize: 40,}}>
@@ -115,20 +121,22 @@ export default function App() {
 
       <View style = {styles.soundGrouper}>
 
-        {audios.map((i, index) => <Sons nome = {i.tipo} select = {i.selected}
-        index = {index}></Sons>)}
+        { audios.map((i, index) => 
+        <Sons nome = {i.tipo} select = {i.selected} index = {index}/>
+        )}
 
       </View>
 
       <Pressable onPress={() => play? setPlay(false) : setPlay(true)}>
       { play?
-      (<Ionicons name="ios-pause-circle-outline" size={55} color="#8942fb" />)
+      <Ionicons name="ios-pause-circle-outline" size={55} color="#8942fb" />
       :
       <Ionicons name="play-circle-outline" size={55} color="#8942fb" />
       }
       </Pressable>
 
       </View>
+
         <Pressable onPress={showTime} style = {styles.alarmStyle}>
           <Ionicons name='timer' size = {55} 
           color = '#8942fb'/>
@@ -137,48 +145,3 @@ export default function App() {
     </View>
   )};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fefefe',
-    alignItems: 'center',
-    
-  },
-
-  textHeader: {
-    fontSize: 40,
-    color: '#8942fb',
-    fontWeight: '900',
-    // marginBottom: 10
-  },
-
-  soundGrouper: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    width: '100%',
-    padding: 20,
-    // borderColor: 'red',
-    // borderWidth: 2,
-  },
-
-  teste: {
-    color: 'white',
-  },
-
-  testeOn: {
-    color: 'violet'
-  },
-
-  alarmStyle: {
-    position: 'absolute',
-    padding: 20,
-    right: 0,
-    bottom: 0,
-  },
-
-  compoGroup: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center'
-  }
-});
